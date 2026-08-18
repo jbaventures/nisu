@@ -1,0 +1,19 @@
+{
+  "name": "Nisu — plani yt 28-ditor",
+  "short_name": "Nisu",
+  "description": "Plan ushqimor dhe stërvitjeje 28-ditor me ushqimin tonë.",
+  "lang": "sq",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F1EEE4",
+  "theme_color": "#16241C",
+  "icons": [
+    {
+      "src": "/nisu-avatar.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

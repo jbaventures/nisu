@@ -1,0 +1,830 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nisu — plani yt 28-ditor</title>
+<meta name="theme-color" content="#16241C">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/nisu-avatar.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/nisu-avatar.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:wght@0,400;0,500;0,600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --ink:#16241C; --paper:#F1EEE4; --paper2:#E6E2D4; --line:#D2CDBC;
+  --olive:#4C6140; --quince:#DFA02A; --brick:#A0472F; --muted:#6E7468;
+  --display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+  --body:"Public Sans","Helvetica Neue",Arial,sans-serif;
+  --pad:22px; --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.testbar{background:var(--ink);color:var(--paper);font-size:12.5px;letter-spacing:.06em;
+  text-transform:uppercase;font-weight:600;padding:9px 16px;text-align:center}
+.testbar b{color:var(--quince)}
+#app{max-width:580px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
+.screen{display:none;flex:1;flex-direction:column;padding:var(--pad) var(--pad) 34px}
+.screen.on{display:flex;animation:sl .34s cubic-bezier(.22,.8,.3,1) both}
+@keyframes sl{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.screen.on{animation:none}*{transition:none!important}}
+
+.rail{display:flex;gap:4px;align-items:flex-end;height:16px;margin-bottom:26px}
+.rail i{flex:1;height:6px;background:var(--line);border-radius:1px;transition:height .3s,background .3s}
+.rail i.done{background:var(--olive)}
+.rail i.now{background:var(--quince);height:14px}
+
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:12px}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(38px,11vw,54px);line-height:.94;letter-spacing:-.025em;margin-bottom:20px}
+h1 em{font-style:normal;display:block;color:var(--olive)}
+h2{font-family:var(--display);font-weight:700;font-size:clamp(26px,7.2vw,32px);line-height:1.08;letter-spacing:-.02em;margin-bottom:8px}
+p{margin-bottom:14px}
+.lede{font-size:18px;color:#33402F}
+.small{font-size:14px;color:var(--muted)}
+.hint{font-size:13.5px;color:var(--muted);margin-top:10px}
+.hero-mark{font-family:var(--display);font-weight:800;font-size:19px;margin-bottom:auto;padding-bottom:30px}
+.hero-mark span{color:var(--quince)}
+
+.btn{display:block;width:100%;border:0;cursor:pointer;background:var(--ink);color:var(--paper);
+  font-family:var(--display);font-weight:700;font-size:19px;padding:19px 20px;border-radius:var(--radius);
+  text-align:center;transition:transform .12s,background .2s}
+.btn:hover{background:#0C1A13}
+.btn:active{transform:scale(.985)}
+.btn[disabled]{opacity:.32;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--muted);font-family:var(--body);font-weight:500;font-size:15px;padding:14px;border-radius:10px}
+.btn.ghost:hover{background:var(--paper2)}
+:focus-visible{outline:3px solid var(--quince);outline-offset:2px;border-radius:4px}
+.stick{margin-top:auto;padding-top:24px}
+
+.opts{display:flex;flex-direction:column;gap:9px;margin-top:22px}
+.opt{display:flex;align-items:center;gap:13px;background:#FBFAF5;border:1.5px solid var(--line);
+  border-radius:var(--radius);padding:16px 17px;font:inherit;font-size:17px;color:var(--ink);
+  text-align:left;cursor:pointer;width:100%;transition:border-color .16s,background .16s}
+.opt:hover{border-color:var(--olive)}
+.opt .tick{width:20px;height:20px;flex:0 0 20px;border-radius:50%;border:1.5px solid var(--line);position:relative}
+.opt.sel{border-color:var(--olive);background:#EDF1E6}
+.opt.sel .tick{border-color:var(--olive);background:var(--olive)}
+.opt.sel .tick:after{content:"";position:absolute;left:6px;top:2.5px;width:5px;height:10px;
+  border:solid #fff;border-width:0 2px 2px 0;transform:rotate(42deg)}
+
+.numwrap{display:flex;align-items:baseline;gap:10px;margin-top:30px}
+input[type=number]{font-family:var(--display);font-weight:700;font-size:46px;letter-spacing:-.03em;
+  width:100%;background:transparent;border:0;border-bottom:2.5px solid var(--line);color:var(--ink);padding:4px 0 10px}
+input:focus{outline:0;border-bottom-color:var(--quince)}
+input::placeholder{color:#BFBAA9}
+.unit{font-family:var(--display);font-weight:700;font-size:22px;color:var(--muted)}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+
+/* ---------- document ---------- */
+#s-plan{padding:0}
+.doc{padding:0 var(--pad) 60px}
+.doccover{background:var(--ink);color:var(--paper);padding:44px var(--pad) 38px;margin-bottom:30px}
+.doccover .mk{font-family:var(--display);font-weight:800;font-size:17px}
+.doccover .mk span{color:var(--quince)}
+.doccover h1{font-size:clamp(34px,9.5vw,46px);margin:26px 0 14px;color:var(--paper)}
+.doccover h1 em{color:var(--quince)}
+.doccover p{color:#BDC4B8;font-size:15.5px;margin:0;max-width:34ch}
+
+.sect{margin-top:38px}
+.secthead{display:flex;align-items:baseline;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:9px;margin-bottom:18px}
+.secthead b{font-family:var(--display);font-weight:800;font-size:21px;letter-spacing:-.02em}
+.secthead i{font-style:normal;font-size:12.5px;color:var(--muted);margin-left:auto;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+
+.macros{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);
+  border:1.5px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.macros div{background:#FBFAF5;padding:14px 8px;text-align:center}
+.macros b{font-family:var(--display);font-weight:800;font-size:21px;display:block;letter-spacing:-.02em}
+.macros span{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
+
+.shop{background:#FBFAF5;border:1.5px solid var(--line);border-radius:var(--radius);padding:18px 19px}
+.shop h4{font-family:var(--display);font-weight:800;font-size:15px;margin-bottom:12px}
+.shop ul{list-style:none}
+.shop li{padding:6px 0;display:flex;gap:10px;align-items:baseline;font-size:15.5px;
+  border-bottom:1px solid #EDEAE0}
+.shop li:last-child{border-bottom:0}
+.shop li:before{content:"";width:11px;height:11px;flex:0 0 11px;border:1.4px solid var(--line);
+  border-radius:3px;transform:translateY(2px)}
+.shop li b{font-family:var(--display);font-weight:700;font-size:14.5px;color:var(--olive);
+  margin-left:auto;white-space:nowrap}
+
+.day{background:#FBFAF5;border:1.5px solid var(--line);border-radius:var(--radius);padding:17px 18px;margin-bottom:11px}
+.day.rest{background:transparent;border-style:dashed}
+.day > header{display:flex;justify-content:space-between;align-items:baseline;
+  border-bottom:1.5px dashed var(--line);padding-bottom:10px;margin-bottom:12px}
+.day > header b{font-family:var(--display);font-weight:800;font-size:16px}
+.day > header i{font-style:normal;font-size:12.5px;color:var(--muted)}
+
+.meal{padding:10px 0}
+.meal + .meal{border-top:1px solid #EDEAE0}
+.meal .top{display:flex;justify-content:space-between;gap:14px;align-items:baseline}
+.meal .m{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.meal .d{font-size:16.5px;margin-top:1px}
+.meal .k{font-family:var(--display);font-weight:700;font-size:14px;color:var(--olive);white-space:nowrap}
+.qty{font-size:14.5px;color:#5A6656;margin-top:5px;line-height:1.45}
+.qty b{font-weight:600;color:var(--ink)}
+
+.trainblock{border-top:1.5px dashed var(--line);margin-top:13px;padding-top:12px}
+.trainhead{display:flex;justify-content:space-between;gap:12px;font-family:var(--display);font-weight:800;
+  font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--olive);margin-bottom:8px}
+.trainhead i{font-style:normal;font-family:var(--body);font-weight:500;font-size:12.5px;
+  letter-spacing:.02em;text-transform:none;color:var(--muted)}
+.ex{display:flex;justify-content:space-between;gap:14px;padding:4px 0;font-size:16px}
+.ex span{font-family:var(--display);font-weight:700;font-size:13.5px;color:var(--muted);white-space:nowrap;padding-top:2px}
+
+/* ---------- progress layer ---------- */
+.chk{display:inline-flex;align-items:center;flex:0 0 auto}
+.chk input{position:absolute;opacity:0;width:1px;height:1px}
+.chk span{width:24px;height:24px;border:1.5px solid var(--line);border-radius:7px;background:#fff;
+  display:inline-block;position:relative;cursor:pointer;transition:background .15s,border-color .15s}
+.chk input:checked + span{background:var(--olive);border-color:var(--olive)}
+.chk input:checked + span:after{content:"";position:absolute;left:8px;top:4px;width:6px;height:12px;
+  border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(42deg)}
+.chk input:focus-visible + span{outline:3px solid var(--quince);outline-offset:2px}
+.mealrow{display:flex;gap:12px;align-items:center;min-width:0}
+.dash{background:#FBFAF5;border:1.5px solid var(--ink);border-radius:var(--radius);padding:18px 19px}
+.dash .nums{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);
+  border:1.5px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:14px}
+.dash .nums div{background:#fff;padding:12px 6px;text-align:center}
+.dash .nums b{font-family:var(--display);font-weight:800;font-size:22px;display:block;letter-spacing:-.02em}
+.dash .nums span{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.grid28{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.grid28 i{aspect-ratio:1;border-radius:5px;background:var(--paper2);border:1px solid var(--line)}
+.grid28 i.done{background:var(--olive);border-color:var(--olive)}
+.grid28 i.part{background:var(--quince);border-color:var(--quince)}
+.grid28 i.today{outline:2px solid var(--ink);outline-offset:1px}
+.repbtn{margin-top:14px}
+
+.rule{border:0;border-top:1.5px solid var(--line);margin:26px 0}
+.notice{background:#FBFAF5;border:1.5px solid var(--line);border-left:3px solid var(--brick);
+  border-radius:10px;padding:15px 17px;margin-top:20px}
+.notice p{font-size:14.5px;margin:0;color:#3A4536}
+.tips{padding-left:20px}
+.tips li{margin-bottom:9px;font-size:16px}
+
+.docbar{position:sticky;bottom:0;background:var(--paper);border-top:1.5px solid var(--line);
+  padding:13px var(--pad);display:flex;gap:10px}
+.docbar .btn{font-size:16px;padding:14px}
+
+@media print{
+  .testbar,.docbar,.rail{display:none!important}
+  body{background:#fff}
+  .day,.shop,.macros{break-inside:avoid}
+  .doccover{background:#fff;color:var(--ink);border-bottom:3px solid var(--ink)}
+  .doccover h1,.doccover h1 em,.doccover p{color:var(--ink)}
+}
+</style>
+
+<div class="testbar">nisu <b>·</b> falas gjatë testimit — <a href="mailto:pershendetje@nisutani.com?subject=Nisu%20feedback" style="color:var(--quince)">na trego çfarë mendon</a></div>
+
+<div id="app">
+
+<section class="screen on" id="s-hero">
+  <div class="hero-mark">nisu<span>.</span></div>
+  <h1>Ushqimi ynë.<em>Plani yt.</em></h1>
+  <p class="lede">Dhjetë pyetje, dy minuta. Pastaj merr planin 28-ditor me sasi për çdo përbërës, listë pazari për çdo javë dhe program stërvitjeje.</p>
+  <p class="lede">Shëno çdo vakt dhe stërvitje të kryer, ndërto serinë tënde dhe shiko raportin në fund.</p>
+  <p class="small">Falas gjatë periudhës së testimit. Vetëm për personat mbi 18 vjeç.</p>
+  <div class="stick"><button class="btn" onclick="go(1)">Fillo tani</button></div>
+</section>
+
+<section class="screen" id="s-quiz">
+  <div class="rail" id="rail"></div>
+  <div class="eyebrow" id="q-eyebrow"></div>
+  <h2 id="q-title"></h2>
+  <p class="small" id="q-sub"></p>
+  <div id="q-body"></div>
+  <div class="stick">
+    <button class="btn" id="q-next" onclick="next()">Vazhdo</button>
+    <button class="btn ghost" onclick="back()">Kthehu</button>
+  </div>
+</section>
+
+<section class="screen" id="s-blocked">
+  <div class="eyebrow">Nisu</div>
+  <h2 id="b-title"></h2>
+  <p class="lede" id="b-text"></p>
+  <div class="stick"><button class="btn" id="b-btn">Kthehu në fillim</button></div>
+</section>
+
+<section class="screen" id="s-plan">
+  <div id="plan"></div>
+  <div class="docbar">
+    <button class="btn" onclick="scrollToday()">Shko te sot</button>
+    <button class="btn ghost" onclick="window.print()" style="flex:0 0 26%">PDF</button>
+    <button class="btn ghost" onclick="resetAll()" style="flex:0 0 26%">Rifillo</button>
+  </div>
+</section>
+
+</div>
+
+<script>
+/* =========================================================================
+   INGREDIENT TABLE
+   k  = kcal per 100 g / 100 ml, or per piece / per spoon where u says so
+   u  = "g" | "ml" | "copë" | "lugë"
+   pk = shopping round-up unit (in the ingredient's own unit)
+   PLACEHOLDER VALUES — every figure below is an estimate and must be
+   verified against a real food table before launch.
+   ========================================================================= */
+const ING = {
+  "gjoks pule":        {k:165, u:"g",    pk:100},
+  "mish i grirë":      {k:250, u:"g",    pk:250},
+  "mish qengji":       {k:280, u:"g",    pk:250},
+  "peshk i bardhë":    {k:90,  u:"g",    pk:200},
+  "tuna konserve":     {k:116, u:"g",    pk:80},
+  "vezë":              {k:78,  u:"copë", pk:6},
+  "kos":               {k:61,  u:"g",    pk:400},
+  "djathë i bardhë":   {k:260, u:"g",    pk:200},
+  "qumësht":           {k:45,  u:"ml",   pk:500},
+  "bukë integrale":    {k:250, u:"g",    pk:250},
+  "oriz":              {k:350, u:"g",    pk:500},
+  "fasule":            {k:330, u:"g",    pk:500},
+  "fasule të bardha":  {k:330, u:"g",    pk:500},
+  "thjerrëza":         {k:350, u:"g",    pk:500},
+  "patate":            {k:77,  u:"g",    pk:500},
+  "domate":            {k:18,  u:"g",    pk:250},
+  "kastravec":         {k:15,  u:"g",    pk:250},
+  "spec":              {k:26,  u:"g",    pk:250},
+  "qepë":              {k:40,  u:"g",    pk:250},
+  "presh":             {k:61,  u:"g",    pk:250},
+  "karota":            {k:41,  u:"g",    pk:250},
+  "selino":            {k:16,  u:"g",    pk:100},
+  "bizele":            {k:81,  u:"g",    pk:250},
+  "brokoli":           {k:34,  u:"g",    pk:250},
+  "spinaq":            {k:23,  u:"g",    pk:250},
+  "kungull i njomë":   {k:17,  u:"g",    pk:250},
+  "patëllxhan":        {k:25,  u:"g",    pk:250},
+  "sallatë jeshile":   {k:15,  u:"g",    pk:100},
+  "sallatë stinore":   {k:20,  u:"g",    pk:250},
+  "perime të përziera":{k:40,  u:"g",    pk:250},
+  "gjethe rrushi":     {k:40,  u:"g",    pk:100},
+  "ullinj":            {k:115, u:"g",    pk:100},
+  "humus":             {k:170, u:"g",    pk:200},
+  "tërshërë":          {k:380, u:"g",    pk:500},
+  "trahanë":           {k:350, u:"g",    pk:250},
+  "byrek me spinaq":   {k:250, u:"g",    pk:150},
+  "miell":             {k:364, u:"g",    pk:500},
+  "vaj ulliri":        {k:135, u:"lugë", pk:1},
+  "mjaltë":            {k:60,  u:"lugë", pk:1},
+  "arra":              {k:654, u:"g",    pk:100},
+  "bajame":            {k:579, u:"g",    pk:100},
+  "mollë":             {k:95,  u:"copë", pk:1},
+  "banane":            {k:105, u:"copë", pk:1},
+  "fruta stinore":     {k:55,  u:"g",    pk:250},
+  "limon":             {k:5,   u:"copë", pk:1},
+  "hudhër":            {k:4,   u:"copë", pk:1},
+  "majdanoz":          {k:5,   u:"g",    pk:50},
+  "kanellë":           {k:0,   u:"g",    pk:20}
+};
+const kcalOf = (name, amount) => {
+  const it = ING[name];
+  return (it.u === "g" || it.u === "ml") ? it.k * amount / 100 : it.k * amount;
+};
+
+/* =========================================================================
+   DISHES — ingredients with base amounts for one adult portion.
+   Dish calories are computed, never typed.
+   ========================================================================= */
+const D = (n, veg, has, ing) => ({n, veg, has, ing});
+const F = {
+ breakfast:[
+  D("Vezë të ziera me bukë dhe domate",1,["gluten"],[["vezë",2],["bukë integrale",60],["domate",120]]),
+  D("Omletë me spinaq dhe spec",1,[],[["vezë",3],["spinaq",80],["spec",60],["vaj ulliri",1]]),
+  D("Kos me bukë integrale dhe mjaltë",1,["lactose","gluten"],[["kos",200],["bukë integrale",60],["mjaltë",1]]),
+  D("Trahanë me kos",1,["gluten","lactose"],[["trahanë",60],["kos",150],["bukë integrale",30]]),
+  D("Byrek me spinaq me kos",1,["gluten","lactose"],[["byrek me spinaq",150],["kos",150]]),
+  D("Bukë me djathë të bardhë dhe ullinj",1,["lactose","gluten"],[["bukë integrale",70],["djathë i bardhë",60],["ullinj",30]]),
+  D("Qull tërshëre me banane",1,["gluten"],[["tërshërë",60],["qumësht",200],["banane",1],["kanellë",1]]),
+  D("Petulla të pjekura me kos dhe mjaltë",1,["gluten","lactose"],[["miell",70],["vezë",1],["kos",100],["mjaltë",1]]),
+  D("Vezë të fërguara me domate dhe spec",1,[],[["vezë",2],["domate",150],["spec",80],["vaj ulliri",1]])
+ ],
+ lunch:[
+  D("Tavë kosi me sallatë jeshile",0,["lactose"],[["mish qengji",120],["kos",150],["vezë",1],["oriz",50],["sallatë jeshile",80]]),
+  D("Gjoks pule i pjekur me oriz dhe sallatë",0,[],[["gjoks pule",150],["oriz",70],["domate",100],["kastravec",100],["vaj ulliri",1]]),
+  D("Fasule me presh dhe bukë",1,["gluten"],[["fasule",90],["presh",100],["qepë",60],["bukë integrale",60],["vaj ulliri",1]]),
+  D("Supë me perime dhe pulë",0,[],[["gjoks pule",100],["karota",80],["patate",120],["selino",50]]),
+  D("Qofte të pjekura me patate në furrë",0,[],[["mish i grirë",130],["patate",250],["qepë",50],["majdanoz",10]]),
+  D("Peshk i pjekur me perime",0,[],[["peshk i bardhë",180],["kungull i njomë",150],["spec",100],["vaj ulliri",1],["limon",1]]),
+  D("Speca të mbushur me oriz dhe mish",0,[],[["spec",200],["oriz",60],["mish i grirë",90],["domate",80]]),
+  D("Sallatë me tuna, fasule dhe vezë",0,[],[["tuna konserve",80],["fasule",60],["vezë",1],["sallatë jeshile",100],["vaj ulliri",1]]),
+  D("Pilaf me pulë dhe sallatë stinore",0,[],[["oriz",80],["gjoks pule",130],["qepë",50],["sallatë stinore",120]]),
+  D("Japrak me kos",0,["lactose"],[["gjethe rrushi",100],["oriz",60],["mish i grirë",80],["kos",120]]),
+  D("Pilaf me perime dhe sallatë",1,[],[["oriz",80],["karota",80],["bizele",80],["qepë",50],["sallatë stinore",100]]),
+  D("Supë me thjerrëza dhe bukë",1,["gluten"],[["thjerrëza",90],["karota",80],["qepë",60],["bukë integrale",60]]),
+  D("Sallatë me fasule, vezë dhe perime",1,[],[["fasule",80],["vezë",2],["domate",120],["kastravec",100],["vaj ulliri",1]]),
+  D("Patate dhe perime në furrë me vezë",1,[],[["patate",250],["kungull i njomë",120],["spec",100],["vezë",2],["vaj ulliri",1]])
+ ],
+ dinner:[
+  D("Qofte të pjekura me perime",0,[],[["mish i grirë",110],["perime të përziera",200],["oriz",40]]),
+  D("Speca të mbushur me oriz dhe perime",1,[],[["spec",200],["oriz",60],["karota",60],["qepë",50]]),
+  D("Sallatë me djathë, domate dhe bukë",1,["lactose","gluten"],[["djathë i bardhë",70],["domate",150],["kastravec",100],["bukë integrale",50],["vaj ulliri",1]]),
+  D("Omletë me perime dhe sallatë",1,[],[["vezë",3],["spec",80],["qepë",40],["sallatë jeshile",80],["vaj ulliri",1]]),
+  D("Pulë e pjekur me brokoli",0,[],[["gjoks pule",150],["brokoli",200],["hudhër",1],["vaj ulliri",1]]),
+  D("Supë trahana me bukë",1,["gluten","lactose"],[["trahanë",70],["kos",100],["bukë integrale",50]]),
+  D("Perime në furrë me djathë",1,["lactose"],[["patëllxhan",150],["kungull i njomë",120],["spec",100],["djathë i bardhë",50],["vaj ulliri",1]]),
+  D("Peshk me sallatë jeshile",0,[],[["peshk i bardhë",180],["sallatë jeshile",120],["limon",1],["vaj ulliri",1]]),
+  D("Fasule të bardha me sallatë stinore",1,[],[["fasule të bardha",90],["qepë",60],["sallatë stinore",120],["vaj ulliri",1]]),
+  D("Turli perimesh me kos",1,["lactose"],[["perime të përziera",250],["kos",150],["vaj ulliri",1]]),
+  D("Vezë të pjekura me spinaq dhe domate",1,[],[["vezë",3],["spinaq",120],["domate",120],["vaj ulliri",1]]),
+  D("Thjerrëza me oriz dhe sallatë",1,[],[["thjerrëza",80],["oriz",50],["sallatë jeshile",100],["vaj ulliri",1]])
+ ],
+ snack:[
+  D("Mollë dhe arra",1,["nuts"],[["mollë",1],["arra",30]]),
+  D("Kos me fruta stinore",1,["lactose"],[["kos",180],["fruta stinore",120]]),
+  D("Banane",1,[],[["banane",1]]),
+  D("Bajame",1,["nuts"],[["bajame",25]]),
+  D("Karota me humus",1,[],[["karota",120],["humus",60]]),
+  D("Fruta stinore",1,[],[["fruta stinore",250]])
+ ]
+};
+const dishKcal = dish => dish.ing.reduce((t,[n,a]) => t + kcalOf(n,a), 0);
+
+/* =========================================================================
+   PORTION SCALING
+   Amounts scale with the person's target, then round to something a human
+   can actually measure. Countables never become fractions.
+   ========================================================================= */
+function roundAmount(name, a){
+  const u = ING[name].u;
+  if (u === "copë") return Math.max(1, Math.round(a));
+  if (u === "lugë") return Math.max(1, Math.round(a));
+  if (a < 50)  return Math.max(5, Math.round(a/5)*5);
+  if (a < 200) return Math.round(a/10)*10;
+  return Math.round(a/25)*25;
+}
+function scaleDish(dish, f){
+  const ing = dish.ing.map(([n,a]) => [n, roundAmount(n, a*f)]);
+  const kcal = ing.reduce((t,[n,a]) => t + kcalOf(n,a), 0);
+  return {n:dish.n, ing, kcal:Math.round(kcal/5)*5};
+}
+function fmt(name, a){
+  const u = ING[name].u;
+  if (u === "copë") return `${a} ${a===1?"copë":"copë"}`;
+  if (u === "lugë") return `${a} ${a===1?"lugë":"lugë"}`;
+  return `${a} ${u}`;
+}
+const qtyLine = ing => ing.map(([n,a]) => `<b>${fmt(n,a)}</b> ${n}`).join(" · ");
+
+/* =========================================================================
+   SHOPPING LIST — sums the week's actual amounts, rounds up to a
+   buyable quantity, and shows the total.
+   ========================================================================= */
+function roundUpBuy(name, total){
+  const {u, pk} = ING[name];
+  const up = Math.ceil(total / pk) * pk;
+  if (u === "g"  && up >= 1000) return `${(up/1000).toFixed(up % 1000 ? 1 : 0)} kg`;
+  if (u === "ml" && up >= 1000) return `${(up/1000).toFixed(1)} l`;
+  if (u === "lugë") return `${up*15} ml`;      // spoons bought as liquid
+  if (u === "copë") return `${up} copë`;
+  return `${up} ${u}`;
+}
+function shoppingList(days){
+  const sum = {};
+  days.forEach(d => d.meals.forEach(m => m.ing.forEach(([n,a]) => sum[n] = (sum[n]||0) + a)));
+  return Object.keys(sum).sort((a,b) => a.localeCompare(b,"sq"))
+    .map(n => [n, roundUpBuy(n, sum[n])]);
+}
+
+/* =========================================================================
+   TRAINING
+   ========================================================================= */
+const TRAINING = {
+ "home-low":{tag:"Në shtëpi, trupi i plotë", s:[
+   {t:"Seanca A", ex:[["Squat me peshën e trupit","3 × 12"],["Push-up, në gjunjë nëse duhet","3 × 8"],["Ura e ijeve","3 × 15"],["Plank","3 × 30 sek"],["Ecje e shpejtë","20 min"]]},
+   {t:"Seanca B", ex:[["Lunge në vend","3 × 10 për këmbë"],["Push-up me duar të gjera","3 × 8"],["Superman","3 × 12"],["Plank anësor","3 × 20 sek"],["Ecje e shpejtë","20 min"]]}]},
+ "home-high":{tag:"Në shtëpi, sipër dhe poshtë", s:[
+   {t:"Pjesa e sipërme", ex:[["Push-up","4 × 8"],["Pike push-up","3 × 8"],["Vozitje me çantë ose rrip","3 × 12"],["Dips në karrige","3 × 10"],["Plank","3 × 40 sek"]]},
+   {t:"Pjesa e poshtme", ex:[["Squat me peshën e trupit","4 × 15"],["Lunge","3 × 12 për këmbë"],["Ura e ijeve me një këmbë","3 × 10"],["Ngritje në maja të gishtave","3 × 20"],["Plank","3 × 40 sek"]]}]},
+ "gym-low":{tag:"Në palestër, trupi i plotë", s:[
+   {t:"Seanca A", ex:[["Squat me shufër","3 × 8"],["Shtytje në stol","3 × 8"],["Tërheqje vertikale","3 × 10"],["Romanian deadlift","3 × 10"],["Plank","3 × 40 sek"]]},
+   {t:"Seanca B", ex:[["Leg press","3 × 12"],["Shtytje mbi kokë","3 × 8"],["Vozitje me kabllo","3 × 12"],["Leg curl","3 × 12"],["Plank anësor","3 × 30 sek"]]}]},
+ "gym-high":{tag:"Në palestër, sipër dhe poshtë", s:[
+   {t:"Pjesa e sipërme", ex:[["Shtytje në stol","4 × 8"],["Tërheqje vertikale","4 × 10"],["Shtytje mbi kokë me dumbbell","3 × 10"],["Vozitje me dumbbell","3 × 12"],["Bicep dhe tricep","3 × 12"]]},
+   {t:"Pjesa e poshtme", ex:[["Squat me shufër","4 × 8"],["Romanian deadlift","3 × 10"],["Leg press","3 × 12"],["Leg curl","3 × 12"],["Ngritje në maja të gishtave","3 × 20"]]}]},
+ "starter":{tag:"Fillestar, pa përvojë", s:[
+   {t:"Seanca A", ex:[["Ecje e shpejtë","25 min"],["Squat duke u ulur në karrige","2 × 10"],["Push-up në mur","2 × 10"],["Ura e ijeve","2 × 12"],["Plank","2 × 20 sek"]]},
+   {t:"Seanca B", ex:[["Ecje e shpejtë","30 min"],["Squat duke u ulur në karrige","3 × 10"],["Push-up në tavolinë","2 × 8"],["Ngritje krahësh anash","2 × 12"],["Plank","2 × 25 sek"]]}]}
+};
+const SCHEDULE = {2:[0,3], 3:[0,2,4], 4:[0,1,3,4], 5:[0,1,2,4,5]};
+
+/* =========================================================================
+   STATE, MATH, GATES
+   ========================================================================= */
+const A = {goal:null,sex:null,age:null,height:null,weight:null,target:null,
+           activity:null,place:null,days:null,breakfast:null,limits:[]};
+const round5 = n => Math.round(n/5)*5;
+const bmiOf = (kg,cm) => kg/Math.pow(cm/100,2);
+function bmr(){ const b = 10*A.weight + 6.25*A.height - 5*A.age; return A.sex==="m"?b+5:b-161; }
+function tdee(){ return bmr() * {desk:1.35,feet:1.55,hard:1.75}[A.activity]; }
+function targetKcal(){
+  const t = tdee();
+  const raw = A.goal==="lose" ? t*0.80 : A.goal==="muscle" ? t*1.10 : t;
+  return Math.max(Math.round(raw/10)*10, A.sex==="m"?1500:1200);
+}
+function macros(){
+  const kcal = targetKcal(), ref = Math.max(A.weight, A.target);
+  const protein = round5(1.6*ref), fat = round5(kcal*0.25/9);
+  return {kcal, protein, fat, carbs:Math.max(round5((kcal-protein*4-fat*9)/4),0)};
+}
+function programme(){
+  if (A.place==="none") return TRAINING.starter;
+  return TRAINING[A.place + (+A.days>=4 ? "-high" : "-low")];
+}
+function gateCheck(){
+  if (A.age < 18) return {title:"Nisu është vetëm për të rriturit",
+    text:"Planet tona ndërtohen për persona mbi 18 vjeç. Nëse je më i ri, fol me mjekun ose me një specialist ushqimi para se të ndryshosh dietën."};
+  if (A.goal==="lose" && bmiOf(A.target,A.height) < 18.5) return {title:"Ky objektiv është shumë i ulët",
+    text:"Pesha që zgjodhe është nën kufirin e shëndetshëm për gjatësinë tënde, prandaj nuk ndërtojmë plan rënieje peshe. Mund të vazhdosh me një plan ushqimor të ekuilibruar në vend të tij."};
+  return null;
+}
+
+/* =========================================================================
+   MENU BUILD
+   ========================================================================= */
+function allowed(d){
+  if (A.limits.includes("veg") && !d.veg) return false;
+  return !d.has.some(h => A.limits.includes(h));
+}
+function pool(cat){ const ok = F[cat].filter(allowed); return ok.length ? ok : F[cat]; }
+
+function buildDay(idx, target){
+  const B = pool("breakfast"), L = pool("lunch"), Dn = pool("dinner"), S = pool("snack");
+  const pref = {veze:"Vezë",byrek:"Byrek",llokume:"Petulla",trahana:"Trahanë",
+                kos:"Kos",coffee:"Vezë",none:"Kos"}[A.breakfast] || "";
+  const Bs = [...B].sort((a,b)=>(b.n.startsWith(pref)?1:0)-(a.n.startsWith(pref)?1:0));
+
+  const b = Bs[idx % Bs.length], l = L[idx % L.length],
+        dn = Dn[(idx+2) % Dn.length], s = S[idx % S.length];
+
+  const base = dishKcal(b)+dishKcal(l)+dishKcal(dn)+dishKcal(s);
+  // Quantities are now printed, so a larger portion is honest rather than a
+  // hidden claim. Range widened so big and small targets both land on target.
+  const f = Math.min(Math.max(target/base, 0.60), 1.90);
+
+  const meals = [
+    {label:"Mëngjesi",  ...scaleDish(b,f)},
+    {label:"Dreka",     ...scaleDish(l,f)},
+    {label:"Darka",     ...scaleDish(dn,f)},
+    {label:"Kolacion",  ...scaleDish(s,f)}
+  ];
+  let total = meals.reduce((t,m)=>t+m.kcal,0);
+  // High targets and light menus can leave a gap the portion cap will not
+  // close. Add up to two further snacks rather than inflating one dish.
+  const labels = ["Kolacion i dytë","Kolacion i tretë"];
+  for (let x = 0; x < 2; x++){
+    const gap = target - total;
+    if (gap < 130) break;
+    const used = new Set(meals.map(mm => mm.n));
+    const extra = S.find(y => !used.has(y.n)) || S[(idx+x+1) % S.length];
+    const ef = Math.min(Math.max(gap/dishKcal(extra), 0.5), 2.5);
+    const m2 = {label:labels[x], ...scaleDish(extra, ef)};
+    meals.push(m2); total += m2.kcal;
+  }
+  return {meals, total};
+}
+
+/* =========================================================================
+   QUIZ UI
+   ========================================================================= */
+const Q = [
+ {k:"goal",eyebrow:"Pyetja 1",t:"Çfarë dëshiron të arrish?",type:"one",
+  opts:[["lose","Të humbas peshë"],["muscle","Të shtoj muskuj"],["better","Të ha më shëndetshëm"]]},
+ {k:"sex",eyebrow:"Pyetja 2",t:"Burrë apo grua?",type:"one",opts:[["m","Burrë"],["f","Grua"]]},
+ {k:"age",eyebrow:"Pyetja 3",t:"Sa vjeç je?",type:"num",unit:"vjeç",
+  sub:"Shërbimi është vetëm për personat mbi 18 vjeç.",min:13,max:99},
+ {k:"height",eyebrow:"Pyetja 4",t:"Sa je i gjatë?",type:"num",unit:"cm",min:120,max:230},
+ {k:"weight",eyebrow:"Pyetja 5",t:"Sa peshon tani?",type:"num",unit:"kg",min:35,max:250},
+ {k:"target",eyebrow:"Pyetja 6",t:"Ku dëshiron të arrish?",type:"num",unit:"kg",min:35,max:250},
+ {k:"activity",eyebrow:"Pyetja 7",t:"Si e kalon ditën?",type:"one",
+  opts:[["desk","Ulur, punë zyre"],["feet","Në këmbë pjesën më të madhe të ditës"],["hard","Punë fizike"]]},
+ {k:"place",eyebrow:"Pyetja 8",t:"Ku do të stërvitesh?",type:"one",
+  opts:[["home","Në shtëpi"],["gym","Në palestër"],["none","Ende nuk stërvitem"]]},
+ {k:"days",eyebrow:"Pyetja 9",t:"Sa ditë në javë mund të stërvitesh realisht?",type:"one",
+  opts:[["2","2 ditë"],["3","3 ditë"],["4","4 ditë"],["5","5 ose më shumë"]]},
+ {k:"breakfast",eyebrow:"Pyetja 10",t:"Si duket mëngjesi yt zakonisht?",type:"one",
+  opts:[["veze","Vezë, të ziera ose të fërguara"],["byrek","Byrek ose pite"],
+        ["llokume","Llokume ose petulla"],["trahana","Trahanë ose supë"],
+        ["kos","Kos me bukë"],["coffee","Vetëm kafe"],["none","Asgjë"]]},
+ {k:"limits",eyebrow:"Pyetja 11",t:"A ka ushqime që nuk i ha?",type:"many",
+  sub:"Mund të zgjedhësh më shumë se një.",
+  opts:[["pork","Mish derri"],["veg","Jam vegjetarian"],["lactose","Laktozë"],
+        ["gluten","Gluten"],["nuts","Arra"],["none","Asnjë kufizim"]]}
+];
+
+/* Target must agree with the goal. Losing weight cannot aim above the
+   current weight; building muscle cannot aim below it. */
+function RQ(q){
+  if (q.k !== "target") return q;
+  const r = {...q};
+  if (A.goal === "lose"){
+    r.max = A.weight - 1;
+    r.sub = "Për rënie në peshë, objektivi duhet të jetë nën peshën e tanishme prej " + A.weight + " kg.";
+  } else if (A.goal === "muscle"){
+    r.min = A.weight;
+    r.sub = "Për shtim muskujsh, objektivi duhet të jetë të paktën " + A.weight + " kg.";
+  }
+  return r;
+}
+
+let i = 0;
+const el = id => document.getElementById(id);
+const screens = ["s-hero","s-quiz","s-blocked","s-plan"];
+const show = id => { screens.forEach(s => el(s).classList.toggle("on", s===id)); window.scrollTo(0,0); };
+function go(w){
+  if (w===0){ i=0; Object.keys(A).forEach(k => A[k] = k==="limits"?[]:null); show("s-hero"); return; }
+  if (w===1){ i=0; render(); show("s-quiz"); }
+}
+function rail(){ el("rail").innerHTML = Q.map((_,n)=>`<i class="${n<i?"done":n===i?"now":""}"></i>`).join(""); }
+const valid = (v,q) => v!=="" && +v>=q.min && +v<=q.max;
+function render(){
+  const q = RQ(Q[i]); rail();
+  el("q-eyebrow").textContent = q.eyebrow; el("q-title").textContent = q.t;
+  el("q-sub").textContent = q.sub||""; el("q-sub").style.display = q.sub?"block":"none";
+  const body = el("q-body"); body.innerHTML = "";
+  if (q.type==="num"){
+    body.innerHTML = `<div class="numwrap"><input type="number" id="in-num" inputmode="numeric" placeholder="0"><span class="unit">${q.unit}</span></div>`;
+    const inp = el("in-num");
+    if (A[q.k]!=null) inp.value = A[q.k];
+    inp.oninput = () => el("q-next").disabled = !valid(inp.value,q);
+    inp.onkeydown = e => { if (e.key==="Enter" && valid(inp.value,q)) next(); };
+    setTimeout(()=>inp.focus(),260);
+    el("q-next").disabled = !valid(inp.value,q);
+  } else {
+    body.innerHTML = `<div class="opts">${q.opts.map(([v,l])=>`<button class="opt" data-v="${v}"><span class="tick"></span>${l}</button>`).join("")}</div>`;
+    body.querySelectorAll(".opt").forEach(b => {
+      const v = b.dataset.v;
+      b.classList.toggle("sel", q.type==="many" ? A.limits.includes(v) : A[q.k]===v);
+      b.onclick = () => {
+        if (q.type==="many"){
+          if (v==="none") A.limits = ["none"];
+          else { A.limits = A.limits.filter(x=>x!=="none");
+                 A.limits = A.limits.includes(v) ? A.limits.filter(x=>x!==v) : [...A.limits,v]; }
+          render();
+        } else { A[q.k]=v; next(); }
+      };
+    });
+    el("q-next").disabled = q.type==="many" ? A.limits.length===0 : !A[q.k];
+  }
+}
+function next(){
+  const q = RQ(Q[i]);
+  if (q.type==="num"){ const inp = el("in-num"); if (!valid(inp.value,q)) return; A[q.k] = +inp.value; }
+  if (q.k==="age" && A.age<18){ const g = gateCheck();
+    el("b-title").textContent=g.title; el("b-text").textContent=g.text;
+    el("b-btn").textContent="Kthehu në fillim"; el("b-btn").onclick=()=>go(0);
+    return show("s-blocked"); }
+  if (i < Q.length-1){ i++; render(); }
+  else {
+    const g = gateCheck();
+    if (g && A.goal==="lose"){
+      A.goal="better";
+      el("b-title").textContent=g.title; el("b-text").textContent=g.text;
+      el("b-btn").textContent="Vazhdo me plan të ekuilibruar";
+      el("b-btn").onclick=()=>{ buildPlan(); show("s-plan"); };
+      return show("s-blocked");
+    }
+    buildPlan(); show("s-plan");
+  }
+}
+function back(){ if (i===0) return go(0); i--; render(); }
+
+/* =========================================================================
+   DOCUMENT
+   ========================================================================= */
+const DAYNAMES = ["E hënë","E martë","E mërkurë","E enjte","E premte","E shtunë","E diel"];
+
+function buildPlan(){
+  store.set("answers", {...A});
+  const m = macros(), prog = programme();
+  const trainDays = SCHEDULE[A.days] || SCHEDULE[3];
+  const goalLine = {lose:"rënie graduale në peshë",muscle:"shtim muskujsh",better:"ushqim i ekuilibruar"}[A.goal];
+
+  let h = `
+  <div class="doccover">
+    <div class="mk">nisu<span>.</span></div>
+    <h1>Plani yt<em>28-ditor</em></h1>
+    <p>Ushqim dhe stërvitje, me sasi për çdo përbërës. Objektivi: ${goalLine}.</p>
+  </div>
+  <div class="doc">
+
+    <div class="dash" id="dash"></div>
+
+    <div class="sect">
+      <div class="secthead"><b>Kaq duhet të hash çdo ditë</b></div>
+      <div class="macros">
+        <div><b>${m.kcal}</b><span>kcal</span></div>
+        <div><b>${m.protein}</b><span>proteina</span></div>
+        <div><b>${m.carbs}</b><span>karbo</span></div>
+        <div><b>${m.fat}</b><span>yndyrna</span></div>
+      </div>
+      <p class="hint">Sasitë poshtë janë llogaritur pikërisht për këto kalori. Nëse e ndan gatimin me dikë tjetër, shumëzo sasitë.</p>
+    </div>
+
+    <div class="sect">
+      <div class="secthead"><b>Si funksionon</b></div>
+      <ul class="tips">
+        <li>Sasitë janë për një person dhe janë peshuar të papërgatitura, para gatimit.</li>
+        <li>Menuja përsëritet gjatë javëve me qëllim. Pazari bëhet më i lirë dhe gatimi më i shpejtë.</li>
+        <li>Nëse një vakt nuk të pëlqen, zëvendësoje me një tjetër nga e njëjta ditë e javës tjetër.</li>
+        <li>Uji: rreth dy litra në ditë.</li>
+        <li>Stërvitje ${A.days} ditë në javë. Ditët e tjera janë pushim, por ecja të bën mirë.</li>
+      </ul>
+    </div>
+
+    <div class="sect">
+      <div class="secthead"><b>Programi i stërvitjes</b><i>${prog.tag}</i></div>
+      ${prog.s.map(s => `<div class="day"><header><b>${s.t}</b><i>${A.days} ditë në javë</i></header>
+        ${s.ex.map(([mv,st])=>`<div class="ex">${mv}<span>${st}</span></div>`).join("")}</div>`).join("")}
+      <p class="hint">Ngroh 5 minuta para çdo seance. Nëse një ushtrim të dhemb, hiqe dhe vazhdo me të tjerat.</p>
+    </div>`;
+
+  for (let w = 0; w < 4; w++){
+    const days = [];
+    for (let d = 0; d < 7; d++) days.push(buildDay(w*2 + d, m.kcal));
+
+    h += `<hr class="rule">
+    <div class="sect">
+      <div class="secthead"><b>Java ${w+1}</b><i>Ditët ${w*7+1} deri ${w*7+7}</i></div>
+      <div class="shop">
+        <h4>Lista e pazarit për këtë javë</h4>
+        <ul>${shoppingList(days).map(([n,q]) => `<li>${n}<b>${q}</b></li>`).join("")}</ul>
+      </div>
+      <p class="hint">Sasitë janë rrumbullakosur deri te paketimi më i afërt që gjendet në dyqan.</p>
+    </div>`;
+
+    for (let d = 0; d < 7; d++){
+      const dayNo = w*7 + d + 1, day = days[d];
+      const isTrain = trainDays.includes(d);
+      const session = prog.s[(w*7+d) % prog.s.length];
+      DAYMETA[dayNo] = {meals:day.meals.length, train:isTrain};
+      h += `
+      <div class="day${isTrain?"":" rest"}" id="day-${dayNo}">
+        <header><b>Dita ${dayNo} · ${DAYNAMES[d]}</b><i>${day.total} kcal</i></header>
+        ${day.meals.map((mm,mi) => { const key = "d"+dayNo+"-m"+mi; return `
+          <div class="meal">
+            <div class="top">
+              <div class="mealrow">
+                <label class="chk"><input type="checkbox" data-k="${key}" ${P[key]?"checked":""}><span></span></label>
+                <div><div class="m">${mm.label}</div><div class="d">${mm.n}</div></div>
+              </div>
+              <div class="k">${mm.kcal}</div>
+            </div>
+            <div class="qty">${qtyLine(mm.ing)}</div>
+          </div>`;}).join("")}
+        <div class="trainblock">
+          <div class="trainhead">
+            <span style="display:inline-flex;gap:10px;align-items:center">${isTrain?`<label class="chk"><input type="checkbox" data-k="d${dayNo}-t" ${P["d"+dayNo+"-t"]?"checked":""}><span></span></label>`:""}${isTrain?"Stërvitje":"Pushim"}</span>
+            <i>${isTrain?session.t:"Ecje 20 deri 30 min"}</i>
+          </div>
+          ${isTrain ? session.ex.map(([mv,st])=>`<div class="ex">${mv}<span>${st}</span></div>`).join("")
+                    : `<div class="ex" style="color:var(--muted)">Ditë pushimi. Ecje e lehtë dhe gjumë i mirë.</div>`}
+        </div>
+      </div>`;
+    }
+  }
+
+  h += `<hr class="rule">
+    <div class="sect">
+      <div class="secthead"><b>Pas 28 ditësh</b></div>
+      <p>Mat veten një herë në javë, në të njëjtën ditë dhe në të njëjtën orë, në mëngjes. Pesha luhatet nga dita në ditë, prandaj shiko drejtimin e javës, jo numrin e ditës.</p>
+      <p>Nëse ndihesh vazhdimisht i lodhur ose i uritur, kjo do të thotë se duhet të hash më shumë, jo më pak.</p>
+      <div class="notice">
+        <p>Ky plan nuk është këshillë mjekësore. Konsultohu me mjekun para se të ndryshosh ushqimin ose stërvitjen, veçanërisht nëse je shtatzënë, ushqen me gji, ose ke ndonjë problem shëndetësor. Nëse ndihesh keq, ndalo dhe kërko ndihmë.</p>
+      </div>
+    </div>
+    <div class="sect" id="report"></div>
+  </div>`;
+
+  el("plan").innerHTML = h;
+  renderDash();
+}
+
+/* =========================================================================
+   PROGRESS LAYER — check-offs, streak, dashboard, report.
+   Persists in localStorage on the deployed site. Falls back to in-memory
+   where storage is unavailable (some previews), in which case ticks last
+   for the session only.
+   ========================================================================= */
+const store = (() => {
+  try {
+    localStorage.setItem("__nisu","1"); localStorage.removeItem("__nisu");
+    return {
+      get: k => { try { return JSON.parse(localStorage.getItem("nisu_"+k)); } catch(e){ return null; } },
+      set: (k,v) => { try { localStorage.setItem("nisu_"+k, JSON.stringify(v)); } catch(e){} }
+    };
+  } catch(e){
+    const m = {};
+    return { get: k => (k in m ? m[k] : null), set: (k,v) => { m[k] = v; } };
+  }
+})();
+let P = store.get("progress") || {};
+let DAYMETA = {};
+
+function todayIdx(){
+  const s = store.get("start");
+  if (!s) return 1;
+  return Math.min(Math.max(Math.floor((Date.now() - s)/86400000) + 1, 1), 28);
+}
+function dayComplete(d){
+  const meta = DAYMETA[d]; if (!meta) return false;
+  for (let mi = 0; mi < meta.meals; mi++) if (!P["d"+d+"-m"+mi]) return false;
+  if (meta.train && !P["d"+d+"-t"]) return false;
+  return true;
+}
+function dayTouched(d){
+  const meta = DAYMETA[d]; if (!meta) return false;
+  for (let mi = 0; mi < meta.meals; mi++) if (P["d"+d+"-m"+mi]) return true;
+  return !!(meta.train && P["d"+d+"-t"]);
+}
+function curStreak(){
+  const t = todayIdx();
+  let d = dayComplete(t) ? t : t - 1, s = 0;
+  for (; d >= 1; d--){ if (dayComplete(d)) s++; else break; }
+  return s;
+}
+function bestStreak(){
+  let best = 0, run = 0;
+  for (let d = 1; d <= 28; d++){ run = dayComplete(d) ? run + 1 : 0; if (run > best) best = run; }
+  return best;
+}
+function adherence(){
+  const t = todayIdx(); let due = 0, done = 0;
+  for (let d = 1; d <= t; d++){
+    const meta = DAYMETA[d]; if (!meta) continue;
+    due += meta.meals + (meta.train ? 1 : 0);
+    for (let mi = 0; mi < meta.meals; mi++) if (P["d"+d+"-m"+mi]) done++;
+    if (meta.train && P["d"+d+"-t"]) done++;
+  }
+  return due ? Math.round(done/due*100) : 0;
+}
+function renderDash(){
+  const box = el("dash"); if (!box) return;
+  const t = todayIdx();
+  const doneDays = Object.keys(DAYMETA).filter(d => dayComplete(+d)).length;
+  let grid = "";
+  for (let d = 1; d <= 28; d++){
+    const cls = [dayComplete(d) ? "done" : dayTouched(d) ? "part" : "", d === t ? "today" : ""].join(" ").trim();
+    grid += `<i class="${cls}" title="Dita ${d}"></i>`;
+  }
+  box.innerHTML = `
+    <div class="secthead" style="border:0;padding:0;margin-bottom:12px"><b>Progresi yt</b><i>Dita ${t} nga 28</i></div>
+    <div class="nums">
+      <div><b>${curStreak()}</b><span>seri ditësh</span></div>
+      <div><b>${doneDays}</b><span>ditë të plota</span></div>
+      <div><b>${adherence()}%</b><span>ndjekje</span></div>
+    </div>
+    <div class="grid28">${grid}</div>
+    <button class="btn repbtn" onclick="buildReport()" style="font-size:16px;padding:13px">Shiko raportin</button>`;
+}
+function buildReport(){
+  const box = el("report"); if (!box) return;
+  const doneDays = Object.keys(DAYMETA).filter(d => dayComplete(+d)).length;
+  let trainDone = 0, trainDue = 0;
+  for (const d in DAYMETA){ if (DAYMETA[d].train){ trainDue++; if (P["d"+d+"-t"]) trainDone++; } }
+  const adh = adherence();
+  const verdict = adh >= 80 ? "Shumë mirë. Vazhdimësia jote është pika më e fortë. Mbaje këtë ritëm."
+    : adh >= 50 ? "Në rrugë të mbarë. Java e ardhshme mund të jetë më e mira deri tani."
+    : "Fillimi është hapi më i vështirë. Zgjidh një vakt në ditë dhe fillo nga aty.";
+  box.innerHTML = `
+    <div class="secthead"><b>Raporti yt</b><i>Deri te dita ${todayIdx()}</i></div>
+    <div class="macros">
+      <div><b>${doneDays}</b><span>ditë të plota</span></div>
+      <div><b>${bestStreak()}</b><span>seria më e gjatë</span></div>
+      <div><b>${trainDone}/${trainDue}</b><span>stërvitje</span></div>
+      <div><b>${adh}%</b><span>ndjekje</span></div>
+    </div>
+    <p class="hint">${verdict}</p>`;
+  box.scrollIntoView({behavior:"smooth"});
+}
+document.addEventListener("change", e => {
+  const c = e.target && e.target.closest ? e.target.closest('input[type="checkbox"][data-k]') : null;
+  if (!c) return;
+  if (!store.get("start")) store.set("start", Date.now());
+  if (c.checked) P[c.dataset.k] = true; else delete P[c.dataset.k];
+  store.set("progress", P);
+  renderDash();
+});
+
+/* ---------- app shell: today, reset, resume, offline ---------- */
+function scrollToday(){
+  const t = document.getElementById("day-" + todayIdx());
+  if (t) t.scrollIntoView({behavior:"smooth", block:"start"});
+}
+function resetAll(){
+  if (!confirm("Kjo fshin progresin dhe përgjigjet e tua dhe fillon nga e para. Vazhdon?")) return;
+  store.set("progress", {}); store.set("start", null); store.set("answers", null);
+  P = {}; DAYMETA = {};
+  go(0);
+}
+(function resume(){
+  const saved = store.get("answers");
+  if (saved && saved.height && saved.weight && saved.goal){
+    Object.assign(A, saved);
+    buildPlan();
+    show("s-plan");
+  }
+})();
+if ("serviceWorker" in navigator && location.protocol === "https:"){
+  navigator.serviceWorker.register("/sw.js").catch(()=>{});
+}
+</script>
