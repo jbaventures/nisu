@@ -1,6 +1,6 @@
 /* Nisu service worker — caches the app shell so the plan opens offline.
    Bump the cache name on every deploy or users keep the old version. */
-const CACHE = "nisu-v1";
+const CACHE = "nisu-v12";
 const SHELL = ["/app", "/nisu-avatar.svg", "/manifest.webmanifest"];
 
 self.addEventListener("install", e => {
