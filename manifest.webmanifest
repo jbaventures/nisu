@@ -6,8 +6,8 @@
   "start_url": "/app",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#F1EEE4",
-  "theme_color": "#16241C",
+  "background_color": "#ECF3FB",
+  "theme_color": "#122B8F",
   "icons": [
     {
       "src": "/nisu-avatar.svg",
